@@ -3,16 +3,9 @@ import random
 
 
 
-class GridSquare:
-
-    def __init__(self,bomb, path, numOfBombs, x,y, cellSize):
-        self.bomb =bomb
-        self.path = path
-        self.numOfBombs = numOfBombs
-        self.rect = pygame.Rect(x, y, cellSize, cellSize)
 
 
-def CreateGrid(rows, cols, cell_size, padding, max_bombs, screenWidth, screenHeight):
+def CreateGrid(GridSquare, rows, cols, cell_size, padding, max_bombs):
 
 
    
@@ -22,8 +15,8 @@ def CreateGrid(rows, cols, cell_size, padding, max_bombs, screenWidth, screenHei
         grid.append([])
         for col in range(cols):
             x = col * (cell_size + padding) + (100)
-            y = row * (cell_size + padding) + (100)
-            grid[row].append(GridSquare(0, 0, 0, x, y, cell_size))
+            y = row * (cell_size + padding) + (50)
+            grid[row].append(GridSquare(0, 0, 0, x, y, cell_size, row, col))
 
     # Create a set to keep track of the positions already chosen
     chosen_positions = set()
