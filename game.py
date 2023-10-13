@@ -22,7 +22,8 @@ MAX_BOMBS = 25
 
 class GridSquare:
 
-    def __init__(self,bomb, path, numOfBombs, x,y, cellSize, row, col):
+    def __init__(self, bomb, path, numOfBombs, x,y, cellSize, row, col):
+        self.revealed = False
         self.bomb =bomb
         self.path = path
         self.numOfBombs = numOfBombs
@@ -61,12 +62,35 @@ for i in range(ROWS):
 
 print("-----------------------------")
 
-path = getPath(grid, ROWS, COLS)
+path, start, end = getPath(grid, ROWS, COLS)
+
 
 # for i in path:
 #      print(i.row, i.col)
 
 
+
+# colors
+hiddenColor = (255,255,255)
+revealedColor = (150,150,150)
+
+startColor = (0,255,0)
+endColor = (150,0,0)
+pathColor = (0,0,255)
+bombColor = (255,0,0)
+
+def displayNumOfBombs(square):
+    if square.numOfBombs > 0:
+        font = pygame.font.Font(None, 36)
+        text = font.render(str(square.numOfBombs), True, (0, 0, 0))
+        text_rect = text.get_rect()
+        text_rect.center = square.rect.center
+
+        return text_rect
+        
+
+        pygame.draw.rect(screen, color, square.rect)
+        screen.blit(text, text_rect)
 
 
 
@@ -86,25 +110,37 @@ while running:
     for row in range(ROWS):
         for col in range(COLS):
                 square = grid[row][col]
-                color = (255, 255, 255)# white
+                color = hiddenColor# white
+
+     
+                
+
+                # elif square.revealed:
 
                 if square.bomb:
-                    color = (255, 0, 0)
+                    color = bombColor
                 if square.path:
-                    color = (0, 255, 0)
+                    color = pathColor
+
+                # if square == start:
+                #     color = startColor
+                if square == end:
+                    color == startColor
 
                 if square.numOfBombs > 0:
                     font = pygame.font.Font(None, 36)
                     text = font.render(str(square.numOfBombs), True, (0, 0, 0))
                     text_rect = text.get_rect()
                     text_rect.center = square.rect.center
+                
 
-                    pygame.draw.rect(screen, color, square.rect)
+                pygame.draw.rect(screen, color, square.rect)
+
+                if square.numOfBombs > 0:
                     screen.blit(text, text_rect)
-                else:
-                    pygame.draw.rect(screen, color, square.rect)
 
-                    
+
+
 
                 
                 

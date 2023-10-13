@@ -65,7 +65,10 @@ def getPath(grid, ROWS, COLS):
     while True:
         startRow, startCol, endRow, endCol = getStartAndEnd(grid, ROWS, COLS)
 
-        path = astar(grid, grid[startRow][startCol], grid[endRow][endCol])
+        start = grid[startRow][startCol]
+        end = grid[endRow][endCol]
+
+        path = astar(grid, start, end)
 
         #check if there is valid path
         if path != None:
@@ -74,7 +77,8 @@ def getPath(grid, ROWS, COLS):
     for i in path:
         i.path = True
 
-    return path, 
+    
+    return (path, start, end)
 
 def getStartAndEnd(grid, ROWS, COLS):
     rand = random.randint(1,4)
