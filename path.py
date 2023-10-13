@@ -81,7 +81,6 @@ def getPath(grid, ROWS, COLS):
     return (path, start, end)
 
 def getStartAndEnd(grid, ROWS, COLS):
-    rand = random.randint(1,4)
 
     while True:
         rand = random.randint(1,4)

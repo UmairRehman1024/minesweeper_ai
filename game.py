@@ -56,13 +56,15 @@ for row in range(ROWS):
     for col in range(COLS):
         grid[row][col].set_numOfBombs(grid)
 
-for i in range(ROWS):
-    for j in range(COLS):
-        print(grid[i][j].row, grid[i][j].col)
+# for i in range(ROWS):
+#     for j in range(COLS):
+#         print(grid[i][j].row, grid[i][j].col)
 
 print("-----------------------------")
 
 path, start, end = getPath(grid, ROWS, COLS)
+
+print(end.row, end.col)
 
 
 # for i in path:
@@ -75,7 +77,7 @@ hiddenColor = (255,255,255)
 revealedColor = (150,150,150)
 
 startColor = (0,255,0)
-endColor = (150,0,0)
+endColor = (255, 154, 3)
 pathColor = (0,0,255)
 bombColor = (255,0,0)
 
@@ -112,26 +114,36 @@ while running:
                 square = grid[row][col]
                 color = hiddenColor# white
 
-     
-                
+                if square == start:
+                    color = startColor
 
-                # elif square.revealed:
+                    if square.numOfBombs > 0:
+                        font = pygame.font.Font(None, 36)
+                        text = font.render(str(square.numOfBombs), True, (0, 0, 0))
+                        text_rect = text.get_rect()
+                        text_rect.center = square.rect.center
 
-                if square.bomb:
-                    color = bombColor
-                if square.path:
-                    color = pathColor
+                elif square == end:
+                    color = endColor
 
-                # if square == start:
-                #     color = startColor
-                if square == end:
-                    color == startColor
+                    if square.numOfBombs > 0:
+                        font = pygame.font.Font(None, 36)
+                        text = font.render(str(square.numOfBombs), True, (0, 0, 0))
+                        text_rect = text.get_rect()
+                        text_rect.center = square.rect.center
 
-                if square.numOfBombs > 0:
-                    font = pygame.font.Font(None, 36)
-                    text = font.render(str(square.numOfBombs), True, (0, 0, 0))
-                    text_rect = text.get_rect()
-                    text_rect.center = square.rect.center
+
+                elif square.revealed:
+                    if square.bomb:
+                        color = bombColor
+                    if square.path:
+                        color = pathColor
+
+                    if square.numOfBombs > 0:
+                        font = pygame.font.Font(None, 36)
+                        text = font.render(str(square.numOfBombs), True, (0, 0, 0))
+                        text_rect = text.get_rect()
+                        text_rect.center = square.rect.center
                 
 
                 pygame.draw.rect(screen, color, square.rect)
