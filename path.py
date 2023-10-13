@@ -63,10 +63,11 @@ def getPath(grid, ROWS, COLS):
 
 
     while True:
-        startRow, startCol, endRow, endCol = getStartAndEnd(ROWS, COLS)
+        startRow, startCol, endRow, endCol = getStartAndEnd(grid, ROWS, COLS)
 
         path = astar(grid, grid[startRow][startCol], grid[endRow][endCol])
 
+        #check if there is valid path
         if path != None:
             break
 
@@ -75,35 +76,42 @@ def getPath(grid, ROWS, COLS):
 
     return path, 
 
-def getStartAndEnd( ROWS, COLS):
+def getStartAndEnd(grid, ROWS, COLS):
     rand = random.randint(1,4)
 
-    if rand == 1:#TOP -> BOTTOM
-        startRow = 0
-        startCol = random.randint(0,COLS - 1)
+    while True:
+        rand = random.randint(1,4)
 
-        endRow = ROWS - 1 
-        endCol = random.randint(0,COLS - 1)
+        if rand == 1:#TOP -> BOTTOM
+            startRow = 0
+            startCol = random.randint(0,COLS - 1)
 
-    elif rand == 2: #BOTTOM -> TOP
-        startRow = ROWS - 1 
-        startCol = random.randint(0,COLS - 1)
+            endRow = ROWS - 1 
+            endCol = random.randint(0,COLS - 1)
 
-        endRow = 0
-        endCol = random.randint(0,COLS - 1)
+        elif rand == 2: #BOTTOM -> TOP
+            startRow = ROWS - 1 
+            startCol = random.randint(0,COLS - 1)
 
-    elif rand == 3:#LEFT -> RIGHT
-        startRow = random.randint(0,ROWS - 1)
-        startCol = 0
+            endRow = 0
+            endCol = random.randint(0,COLS - 1)
 
-        endRow = random.randint(0,ROWS - 1)
-        endCol = COLS - 1
-    else: #RIGHT -> LEFT
-        startRow = random.randint(0,ROWS - 1)
-        startCol = COLS - 1
+        elif rand == 3:#LEFT -> RIGHT
+            startRow = random.randint(0,ROWS - 1)
+            startCol = 0
 
-        endRow = random.randint(0,ROWS - 1)
-        endCol = 0
+            endRow = random.randint(0,ROWS - 1)
+            endCol = COLS - 1
+        else: #RIGHT -> LEFT
+            startRow = random.randint(0,ROWS - 1)
+            startCol = COLS - 1
+
+            endRow = random.randint(0,ROWS - 1)
+            endCol = 0
+
+        #check if grid square is bomb
+        if grid[startRow][startCol].bomb != True or grid[endRow][endCol].bomb != True:
+            break
 
     return (startRow, startCol, endRow, endCol)
 

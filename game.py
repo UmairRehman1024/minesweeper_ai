@@ -1,6 +1,7 @@
 import pygame
 from CreateGrid import CreateGrid
 from path import getPath
+from numOfBombs import generateNumOfBombs
 
 pygame.init()
 
@@ -34,9 +35,25 @@ class GridSquare:
 
     def f_cost(self):
         return self.g_cost + self.h_cost
+    
+    def set_numOfBombs(self, grid):
+        # Define the offsets for checking neighboring squares, including diagonals
+        neighbors_offsets = [
+            (1, 0), (-1, 0), (0, 1), (0, -1),
+            (1, 1), (-1, -1), (1, -1), (-1, 1)
+        ]
+
+        for dr, dc in neighbors_offsets:
+            r, c = self.row + dr, self.col + dc
+            if 0 <= r < len(grid) and 0 <= c < len(grid[0]) and grid[r][c].bomb and self.bomb == False:
+                self.numOfBombs += 1
+
 
 grid = CreateGrid(GridSquare, ROWS, COLS, CELL_SIZE, PADDING, MAX_BOMBS)
 
+for row in range(ROWS):
+    for col in range(COLS):
+        grid[row][col].set_numOfBombs(grid)
 
 for i in range(ROWS):
     for j in range(COLS):
@@ -48,6 +65,9 @@ path = getPath(grid, ROWS, COLS)
 
 # for i in path:
 #      print(i.row, i.col)
+
+
+
 
 
 while running:
@@ -65,14 +85,42 @@ while running:
     # RENDER YOUR GAME HERE
     for row in range(ROWS):
         for col in range(COLS):
-                color = (255,255,255)
+                square = grid[row][col]
+                color = (255, 255, 255)# white
 
-                if grid[row][col].bomb == True:
-                     color = (255,0,0)
+                if square.bomb:
+                    color = (255, 0, 0)
+                if square.path:
+                    color = (0, 255, 0)
+
+                if square.numOfBombs > 0:
+                    font = pygame.font.Font(None, 36)
+                    text = font.render(str(square.numOfBombs), True, (0, 0, 0))
+                    text_rect = text.get_rect()
+                    text_rect.center = square.rect.center
+
+                    pygame.draw.rect(screen, color, square.rect)
+                    screen.blit(text, text_rect)
+                else:
+                    pygame.draw.rect(screen, color, square.rect)
+
+                    
+
                 
-                if grid[row][col].path == True:
-                     color = (0,255,0)
-                pygame.draw.rect(screen, color, grid[row][col].rect)  # Example color  (white)
+                
+          
+
+
+                # text = "1"
+
+                # font = pygame.font.Font(None, 36)
+                # text = font.render(text, True, (0, 0, 0))
+                # text_rect = text.get_rect()
+                # text_rect.center = square.rect.center
+
+                # pygame.draw.rect(screen, color, square.rect)
+                # screen.blit(text, text_rect)
+                    
 
     # flip() the display to put your work on screen
     pygame.display.flip()
