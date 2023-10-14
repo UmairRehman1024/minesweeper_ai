@@ -73,7 +73,7 @@ print(end.row, end.col)
 
 
 # colors
-hiddenColor = (255,255,255)
+hiddenColor = (255,255,255)#white
 revealedColor = (150,150,150)
 
 startColor = (0,255,0)
@@ -94,7 +94,7 @@ def displayNumOfBombs(square):
         pygame.draw.rect(screen, color, square.rect)
         screen.blit(text, text_rect)
 
-
+gameOver = False
 
 while running:
     # poll for events
@@ -102,55 +102,83 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
+        elif event.type == pygame.MOUSEBUTTONUP and event.button == 1:
+            x, y = pygame.mouse.get_pos()
+    
+
+            for row in range(ROWS):
+                for col in range(COLS):
+                    square = grid[row][col]
+                    if square.rect.collidepoint(x,y):
+                        if square.revealed == False:
+                            square.revealed = True
+                        elif square.bomb:
+                            gameOver = True
+
+                        
+
+
 
     # fill the screen with a color to wipe away anything from last frame
     # screen.fill("purple")
 
+    if  gameOver == False:
+    
  
 
-    # RENDER YOUR GAME HERE
-    for row in range(ROWS):
-        for col in range(COLS):
-                square = grid[row][col]
-                color = hiddenColor# white
+        # RENDER YOUR GAME HERE
+        for row in range(ROWS):
+            for col in range(COLS):
+                    square = grid[row][col]
+                    color = hiddenColor# white
 
-                if square == start:
-                    color = startColor
+                    if square == start:
+                        color = startColor
+                        
 
-                    if square.numOfBombs > 0:
-                        font = pygame.font.Font(None, 36)
-                        text = font.render(str(square.numOfBombs), True, (0, 0, 0))
-                        text_rect = text.get_rect()
-                        text_rect.center = square.rect.center
+                        if square.numOfBombs > 0 :
+                            font = pygame.font.Font(None, 36)
+                            text = font.render(str(square.numOfBombs), True, (0, 0, 0))
+                            text_rect = text.get_rect()
+                            text_rect.center = square.rect.center
 
-                elif square == end:
-                    color = endColor
+                    elif square == end:
+                        color = endColor
 
-                    if square.numOfBombs > 0:
-                        font = pygame.font.Font(None, 36)
-                        text = font.render(str(square.numOfBombs), True, (0, 0, 0))
-                        text_rect = text.get_rect()
-                        text_rect.center = square.rect.center
+                        if square.numOfBombs > 0 :
+                            font = pygame.font.Font(None, 36)
+                            text = font.render(str(square.numOfBombs), True, (0, 0, 0))
+                            text_rect = text.get_rect()
+                            text_rect.center = square.rect.center
 
 
-                elif square.revealed:
-                    if square.bomb:
-                        color = bombColor
-                    if square.path:
-                        color = pathColor
+                    elif square.revealed:
+                        color = revealedColor
 
-                    if square.numOfBombs > 0:
-                        font = pygame.font.Font(None, 36)
-                        text = font.render(str(square.numOfBombs), True, (0, 0, 0))
-                        text_rect = text.get_rect()
-                        text_rect.center = square.rect.center
-                
 
-                pygame.draw.rect(screen, color, square.rect)
+                        if square.bomb:
+                            color = bombColor
+                        if square.path:
+                            color = pathColor
 
-                if square.numOfBombs > 0:
-                    screen.blit(text, text_rect)
+                        if square.numOfBombs > 0 and square.bomb == False:
+                            font = pygame.font.Font(None, 36)
+                            text = font.render(str(square.numOfBombs), True, (0, 0, 0))
+                            text_rect = text.get_rect()
+                            text_rect.center = square.rect.center
 
+                    
+
+                    pygame.draw.rect(screen, color, square.rect)
+
+
+                    if square.numOfBombs > 0 and (square.revealed or square == start or start == end):
+                        screen.blit(text, text_rect)
+
+    else:
+        font = pygame.font.Font(None, 36)
+        text = font.render("GAMEOVER", True, (0, 0, 0))
+        screen.blit(text, (100, 100))
 
 
 
@@ -159,16 +187,7 @@ while running:
           
 
 
-                # text = "1"
-
-                # font = pygame.font.Font(None, 36)
-                # text = font.render(text, True, (0, 0, 0))
-                # text_rect = text.get_rect()
-                # text_rect.center = square.rect.center
-
-                # pygame.draw.rect(screen, color, square.rect)
-                # screen.blit(text, text_rect)
-                    
+    
 
     # flip() the display to put your work on screen
     pygame.display.flip()
