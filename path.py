@@ -82,8 +82,13 @@ def getPath(grid, ROWS, COLS):
 
 def getStartAndEnd(grid, ROWS, COLS):
 
-    while True:
+    found = False
+
+    
+    while found == False:
+        
         rand = random.randint(1,4)
+
 
         if rand == 1:#TOP -> BOTTOM
             startRow = 0
@@ -98,6 +103,7 @@ def getStartAndEnd(grid, ROWS, COLS):
 
             endRow = 0
             endCol = random.randint(0,COLS - 1)
+        
 
         elif rand == 3:#LEFT -> RIGHT
             startRow = random.randint(0,ROWS - 1)
@@ -112,18 +118,14 @@ def getStartAndEnd(grid, ROWS, COLS):
             endRow = random.randint(0,ROWS - 1)
             endCol = 0
 
+
         #check if grid square is bomb
-        if grid[startRow][startCol].bomb != True or grid[endRow][endCol].bomb != True:
-            break
+        if grid[startRow][startCol].bomb == False and grid[endRow][endCol].bomb == False:
+            found = True
+
+        
 
     return (startRow, startCol, endRow, endCol)
 
         
-
-
-
-
-   
-
-
 

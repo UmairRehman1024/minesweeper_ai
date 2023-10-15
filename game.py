@@ -13,11 +13,11 @@ running = True
 pygame.display.set_caption("Pathfinding Minesweeper")
 
 #create grid
-ROWS = 10
-COLS = 10
+ROWS = 5
+COLS = 5
 CELL_SIZE = 40
 PADDING = 2
-MAX_BOMBS = 25
+MAX_BOMBS = 7
 
 
 class GridSquare:
