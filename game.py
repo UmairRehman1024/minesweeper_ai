@@ -112,8 +112,11 @@ while running:
                     if square.rect.collidepoint(x,y):
                         if square.revealed == False:
                             square.revealed = True
-                        elif square.bomb:
+                        if square.bomb:
                             gameOver = True
+                            for row in range(ROWS):
+                                for col in range(COLS):
+                                    grid[row][col].revealed = True
 
                         
 
@@ -176,6 +179,30 @@ while running:
                         screen.blit(text, text_rect)
 
     else:
+          # RENDER YOUR GAME HERE
+        for row in range(ROWS):
+            for col in range(COLS):
+                    square = grid[row][col]
+                    color = revealedColor
+                    
+                    if square.bomb:
+                        color = bombColor
+                    if square.path:
+                        color = pathColor
+
+                    if square.numOfBombs > 0 and square.bomb == False:
+                        font = pygame.font.Font(None, 36)
+                        text = font.render(str(square.numOfBombs), True, (0, 0, 0))
+                        text_rect = text.get_rect()
+                        text_rect.center = square.rect.center
+
+                    
+                    pygame.draw.rect(screen, color, square.rect)
+
+                    if square.numOfBombs > 0 and (square.revealed or square == start or start == end):
+                        screen.blit(text, text_rect)
+
+
         font = pygame.font.Font(None, 36)
         text = font.render("GAMEOVER", True, (255, 255, 255))
         screen.blit(text, (WIDTH/2-text.get_width()/2, 25))
