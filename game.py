@@ -50,7 +50,7 @@ class GridSquare:
                 self.numOfBombs += 1
 
 
-grid = CreateGrid(GridSquare, ROWS, COLS, CELL_SIZE, PADDING, MAX_BOMBS)
+grid = CreateGrid(GridSquare, ROWS, COLS, CELL_SIZE, PADDING, MAX_BOMBS, WIDTH, HEIGHT)
 
 for row in range(ROWS):
     for col in range(COLS):
@@ -177,8 +177,8 @@ while running:
 
     else:
         font = pygame.font.Font(None, 36)
-        text = font.render("GAMEOVER", True, (0, 0, 0))
-        screen.blit(text, (100, 100))
+        text = font.render("GAMEOVER", True, (255, 255, 255))
+        screen.blit(text, (WIDTH/2-text.get_width()/2, 25))
 
 
 
