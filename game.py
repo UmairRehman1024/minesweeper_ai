@@ -3,23 +3,27 @@ from CreateGrid import CreateGrid
 from path import getPath
 from numOfBombs import generateNumOfBombs
 
-pygame.init()
-
+#constants
+ROWS = 10
+COLS = 10
+CELL_SIZE = 40
+PADDING = 2
+MAX_BOMBS = 20
 WIDTH = 640
 HEIGHT = 480
+
+
+#pygame init
+pygame.init()
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 clock = pygame.time.Clock()
 running = True
 pygame.display.set_caption("Pathfinding Minesweeper")
 
-#create grid
-ROWS = 5
-COLS = 5
-CELL_SIZE = 40
-PADDING = 2
-MAX_BOMBS = 7
 
 
+
+#
 class GridSquare:
 
     def __init__(self, bomb, path, numOfBombs, x,y, cellSize, row, col):
@@ -34,6 +38,7 @@ class GridSquare:
         self.h_cost = 0
         self.parent = None
 
+    #used for A* pathfinding algo
     def f_cost(self):
         return self.g_cost + self.h_cost
     
@@ -50,25 +55,19 @@ class GridSquare:
                 self.numOfBombs += 1
 
 
+#instanciate grid
 grid = CreateGrid(GridSquare, ROWS, COLS, CELL_SIZE, PADDING, MAX_BOMBS, WIDTH, HEIGHT)
 
+# add number of bomb to each grid square
 for row in range(ROWS):
     for col in range(COLS):
         grid[row][col].set_numOfBombs(grid)
 
-# for i in range(ROWS):
-#     for j in range(COLS):
-#         print(grid[i][j].row, grid[i][j].col)
-
-print("-----------------------------")
-
+#get the path
 path, start, end = getPath(grid, ROWS, COLS)
 
-print(end.row, end.col)
 
 
-# for i in path:
-#      print(i.row, i.col)
 
 
 
@@ -96,15 +95,20 @@ def displayNumOfBombs(square):
 
 gameOver = False
 
+#main game loop
 while running:
     # poll for events
     # pygame.QUIT event means the user clicked X to close your window
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
+
+
+        #event for when clicking left mouse button 
+        #used to reveal squares and check if clicked on bomb
         elif event.type == pygame.MOUSEBUTTONUP and event.button == 1:
+
             x, y = pygame.mouse.get_pos()
-    
 
             for row in range(ROWS):
                 for col in range(COLS):
@@ -122,9 +126,7 @@ while running:
 
 
 
-    # fill the screen with a color to wipe away anything from last frame
-    # screen.fill("purple")
-
+    
     if  gameOver == False:
     
  
@@ -135,19 +137,22 @@ while running:
                     square = grid[row][col]
                     color = hiddenColor# white
 
+                    
                     if square == start:
                         color = startColor
                         
-
+                        #if has bombs around, show numOfBombs
                         if square.numOfBombs > 0 :
                             font = pygame.font.Font(None, 36)
                             text = font.render(str(square.numOfBombs), True, (0, 0, 0))
                             text_rect = text.get_rect()
                             text_rect.center = square.rect.center
 
+                    
                     elif square == end:
                         color = endColor
 
+                        #if has bombs around, show numOfBombs
                         if square.numOfBombs > 0 :
                             font = pygame.font.Font(None, 36)
                             text = font.render(str(square.numOfBombs), True, (0, 0, 0))
@@ -164,6 +169,7 @@ while running:
                         if square.path:
                             color = pathColor
 
+                        #if has bombs around and is not a bomb, show numOfBombs
                         if square.numOfBombs > 0 and square.bomb == False:
                             font = pygame.font.Font(None, 36)
                             text = font.render(str(square.numOfBombs), True, (0, 0, 0))
@@ -176,10 +182,14 @@ while running:
 
 
                     if square.numOfBombs > 0 and (square.revealed or square == start or start == end):
+                        #used to show text on top of the rect square
                         screen.blit(text, text_rect)
 
     else:
-          # RENDER YOUR GAME HERE
+        #if game over
+
+
+        #show full revealed grid
         for row in range(ROWS):
             for col in range(COLS):
                     square = grid[row][col]
@@ -202,7 +212,7 @@ while running:
                     if square.numOfBombs > 0 and (square.revealed or square == start or start == end):
                         screen.blit(text, text_rect)
 
-
+        #show game over text
         font = pygame.font.Font(None, 36)
         text = font.render("GAMEOVER", True, (255, 255, 255))
         screen.blit(text, (WIDTH/2-text.get_width()/2, 25))
