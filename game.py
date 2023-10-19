@@ -8,7 +8,7 @@ ROWS = 10
 COLS = 10
 CELL_SIZE = 40
 PADDING = 2
-MAX_BOMBS = 20
+MAX_BOMBS = (ROWS*COLS)*0.2
 WIDTH = 640
 HEIGHT = 480
 
@@ -19,6 +19,8 @@ screen = pygame.display.set_mode((WIDTH, HEIGHT))
 clock = pygame.time.Clock()
 running = True
 pygame.display.set_caption("Pathfinding Minesweeper")
+font = pygame.font.Font(None, 36)
+
 
 
 
@@ -55,30 +57,20 @@ class GridSquare:
                 self.numOfBombs += 1
 
 
-#instanciate grid
-grid = CreateGrid(GridSquare, ROWS, COLS, CELL_SIZE, PADDING, MAX_BOMBS, WIDTH, HEIGHT)
 
-# add number of bomb to each grid square
-for row in range(ROWS):
-    for col in range(COLS):
-        grid[row][col].set_numOfBombs(grid)
+def instanciateGrid():
+    #instanciate grid
+    grid = CreateGrid(GridSquare, ROWS, COLS, CELL_SIZE, PADDING, MAX_BOMBS, WIDTH, HEIGHT)
 
-#get the path
-path, start, end = getPath(grid, ROWS, COLS)
+    # add number of bomb to each grid square
+    for row in range(ROWS):
+        for col in range(COLS):
+            grid[row][col].set_numOfBombs(grid)
 
+    #get the path
+    path, start, end = getPath(grid, ROWS, COLS)
 
-
-
-
-
-# colors
-hiddenColor = (255,255,255)#white
-revealedColor = (150,150,150)
-
-startColor = (0,255,0)
-endColor = (255, 154, 3)
-pathColor = (0,0,255)
-bombColor = (255,0,0)
+    return (grid, path, start, end)
 
 def displayNumOfBombs(square):
     if square.numOfBombs > 0:
@@ -88,15 +80,45 @@ def displayNumOfBombs(square):
         text_rect.center = square.rect.center
 
         return text_rect
-        
-
-        pygame.draw.rect(screen, color, square.rect)
-        screen.blit(text, text_rect)
 
 gameOver = False
 
+
+# colors
+hiddenColor = (255,255,255)#white
+revealedColor = (150,150,150)
+
+backgroundColor = (0,0,0)
+
+startColor = (0,255,0)
+endColor = (255, 154, 3)
+pathColor = (0,0,255)
+bombColor = (255,0,0)
+
+grid, path, start, end = instanciateGrid();
+
+gameOverText = font.render("GAMEOVER", True, (255, 255, 255))
+gameOverRect = pygame.Rect(WIDTH*1/4-gameOverText.get_width()/2, 25, gameOverText.get_width(), gameOverText.get_height())
+
+restartText = font.render("RESTART", True, (255, 255, 255))
+restartRect = pygame.Rect(WIDTH*3/4-restartText.get_width()/2, 25, restartText.get_width(), restartText.get_height())
+
+winText = font.render("You win", True, (255, 255, 255))
+winRect = pygame.Rect(WIDTH/2-winText.get_width()/2, 25, winText.get_width(), winText.get_height())
+
+loseText = font.render("You lose", True, (255, 255, 255))
+loseRect = pygame.Rect(WIDTH/2-loseText.get_width()/2, 25, loseText.get_width(), loseText.get_height())
+
+numOfFoundPath = 0
+
+win = False
+    
+
 #main game loop
 while running:
+    screen.fill(backgroundColor)
+    
+    
     # poll for events
     # pygame.QUIT event means the user clicked X to close your window
     for event in pygame.event.get():
@@ -116,18 +138,35 @@ while running:
                     if square.rect.collidepoint(x,y):
                         if square.revealed == False:
                             square.revealed = True
+                            if square.path:
+                                numOfFoundPath += 1
+                        
+                            print(numOfFoundPath)
+                            if numOfFoundPath == len(path):
+                                print("WINNNER")
+                                gameOver = True
+                                win = True
+
+                            
                         if square.bomb:
                             gameOver = True
                             for row in range(ROWS):
                                 for col in range(COLS):
                                     grid[row][col].revealed = True
 
+                            
+            if restartRect.collidepoint(x,y):
+                print("restart")
+                grid, path, start, end = instanciateGrid();
+                gameOver = False
+                
+                
+
                         
 
-
-
-    
     if  gameOver == False:
+       
+    
     
  
 
@@ -143,7 +182,7 @@ while running:
                         
                         #if has bombs around, show numOfBombs
                         if square.numOfBombs > 0 :
-                            font = pygame.font.Font(None, 36)
+                            
                             text = font.render(str(square.numOfBombs), True, (0, 0, 0))
                             text_rect = text.get_rect()
                             text_rect.center = square.rect.center
@@ -154,7 +193,6 @@ while running:
 
                         #if has bombs around, show numOfBombs
                         if square.numOfBombs > 0 :
-                            font = pygame.font.Font(None, 36)
                             text = font.render(str(square.numOfBombs), True, (0, 0, 0))
                             text_rect = text.get_rect()
                             text_rect.center = square.rect.center
@@ -171,7 +209,6 @@ while running:
 
                         #if has bombs around and is not a bomb, show numOfBombs
                         if square.numOfBombs > 0 and square.bomb == False:
-                            font = pygame.font.Font(None, 36)
                             text = font.render(str(square.numOfBombs), True, (0, 0, 0))
                             text_rect = text.get_rect()
                             text_rect.center = square.rect.center
@@ -187,6 +224,9 @@ while running:
 
     else:
         #if game over
+        
+        numOfFoundPath = 0
+       
 
 
         #show full revealed grid
@@ -201,7 +241,6 @@ while running:
                         color = pathColor
 
                     if square.numOfBombs > 0 and square.bomb == False:
-                        font = pygame.font.Font(None, 36)
                         text = font.render(str(square.numOfBombs), True, (0, 0, 0))
                         text_rect = text.get_rect()
                         text_rect.center = square.rect.center
@@ -213,15 +252,15 @@ while running:
                         screen.blit(text, text_rect)
 
         #show game over text
-        font = pygame.font.Font(None, 36)
-        text = font.render("GAMEOVER", True, (255, 255, 255))
-        screen.blit(text, (WIDTH/2-text.get_width()/2, 25))
+        screen.blit(gameOverText, gameOverRect)
 
+        if win:
+            screen.blit(winText, winRect)
+        else:
+            screen.blit(loseText, loseRect)
 
-
-                
-                
-          
+        #show restart text
+        screen.blit(restartText, restartRect)
 
 
     
