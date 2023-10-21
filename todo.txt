@@ -1,0 +1,4 @@
+get rid of marking bombs
+
+make the action a square for the ai to reveal
+
