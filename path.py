@@ -1,3 +1,4 @@
+import time
 import pygame
 import heapq
 import random
@@ -60,24 +61,33 @@ def heuristic(node, goal):
 
 
 def getPath(grid, ROWS, COLS):
+    MAX_RETRIES = 3
+    retries = 0
+    startRow, startCol, endRow, endCol = getStartAndEnd(grid, ROWS, COLS)
 
-
-    while True:
-        startRow, startCol, endRow, endCol = getStartAndEnd(grid, ROWS, COLS)
-
-        start = grid[startRow][startCol]
-        end = grid[endRow][endCol]
+    start = grid[startRow][startCol]
+    end = grid[endRow][endCol]
+    while retries < MAX_RETRIES:
+        
 
         path = astar(grid, start, end)
 
-        #check if there is valid path
-        if path != None:
+        # Check if there is a valid path
+        if path is not None:
             break
+        else:
+            print("Failed to generate a valid path. Retrying...", retries)
+            retries += 1  # Increment the number of retries
+
+        if retries == MAX_RETRIES:
+            print("Failed to generate a valid path after multiple retries.")
+            break  # Exit the loop if retries are exhausted
+        else:
+            time.sleep(1)  # Add a delay of 1 second before retrying
 
     for i in path:
         i.path = True
 
-    
     return (path, start, end)
 
 def getStartAndEnd(grid, ROWS, COLS):

@@ -4,6 +4,8 @@ import torch.optim as optim
 import torch.nn.functional as F
 import os
 
+from game import COLS, ROWS
+
 class Linear_QNet(nn.Module):
     def __init__(self, input_size, hidden_size, output_size):
         super().__init__()
@@ -32,11 +34,14 @@ class QTrainer:
         self.optimizer = optim.Adam(model.parameters(), lr=self.lr)
         self.criterion = nn.MSELoss()
 
-    def train_step(self, state, action, reward, next_state, done):
+    def train_step(self, state, row, col, reward, next_state, done):
+        chosen_action = row * COLS + col
+
         state = torch.tensor(state, dtype=torch.float)
         next_state = torch.tensor(next_state, dtype=torch.float)
-        action = torch.tensor(action, dtype=torch.long)
+        action = torch.tensor(chosen_action, dtype=torch.long)
         reward = torch.tensor(reward, dtype=torch.float)
+            
         # (n, x)
 
         if len(state.shape) == 1:
@@ -66,6 +71,5 @@ class QTrainer:
         loss.backward()
 
         self.optimizer.step()
-
 
 

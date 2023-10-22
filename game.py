@@ -12,6 +12,7 @@ MAX_BOMBS = (ROWS*COLS)*0.2
 WIDTH = 640
 HEIGHT = 480
 
+MAX_RETRIES = 3
 
 
 # colors
@@ -73,24 +74,25 @@ class PlayerGridSquare:
         self.revealed = False
         self.row = row
         self.col = col
-        self.markedBomb =False
+        #self.markedBomb =False
         self.path = False
         self.numOfBombs = -1
 
 class PlayerGrid:
     def __init__(self):
-        self.grid = [ROWS][COLS]
+        self.grid = []
         for row in range(ROWS):
+            self.grid.append([])
             for col in range(COLS):
-                self.grid[row][col] = PlayerGridSquare(row, col)
+                self.grid[row].append(PlayerGridSquare(row, col))
 
 
     def updateSquare(self, gridSquare):
         self.grid[gridSquare.row][gridSquare.col].path = gridSquare.path
         self.grid[gridSquare.row][gridSquare.col].numOfBombs = gridSquare.numOfBombs
 
-    def markBomb(self, row, col):
-        self.grid[row][col].markedBomb = True
+    # def markBomb(self, row, col):
+    #     self.grid[row][col].markedBomb = True
 
     
     def revealSquare(self, row, col):
@@ -113,20 +115,21 @@ class MinesweeperGameAI:
         self.clock = pygame.time.Clock()
         self.reset()
         
+
     def reset(self):
-        self.display.fill(backgroundColor)
+        self.screen.fill(backgroundColor)
+        retries = 0
         self.grid, self.path, self.start, self.end = self.instanciateGrid()
         self.playerGrid = PlayerGrid()
         self.playerGrid.updateSquare(self.start)
         self.playerGrid.updateSquare(self.end)
-        self.playerGrid
         self.gameOver = False
         self.win = False
         self.numOfFoundPath = 0
 
 
     def update(self):
-        self.display.fill(backgroundColor)
+        self.screen.fill(backgroundColor)
         self.drawGrid()
 
 
@@ -143,7 +146,7 @@ class MinesweeperGameAI:
                             #if has bombs around, show numOfBombs
                             if square.numOfBombs > 0 :
                                 
-                                text = self.font.render(str(square.numOfBombs), True, (0, 0, 0))
+                                text = font.render(str(square.numOfBombs), True, (0, 0, 0))
                                 text_rect = text.get_rect()
                                 text_rect.center = square.rect.center
 
@@ -153,7 +156,7 @@ class MinesweeperGameAI:
 
                             #if has bombs around, show numOfBombs
                             if square.numOfBombs > 0 :
-                                text = self.font.render(str(square.numOfBombs), True, (0, 0, 0))
+                                text = font.render(str(square.numOfBombs), True, (0, 0, 0))
                                 text_rect = text.get_rect()
                                 text_rect.center = square.rect.center
 
@@ -169,12 +172,12 @@ class MinesweeperGameAI:
 
                             #if has bombs around and is not a bomb, show numOfBombs
                             if square.numOfBombs > 0 and square.bomb == False:
-                                text = self.font.render(str(square.numOfBombs), True, (0, 0, 0))
+                                text = font.render(str(square.numOfBombs), True, (0, 0, 0))
                                 text_rect = text.get_rect()
                                 text_rect.center = square.rect.center
                         
-                        elif playerSqaure.markedBomb:
-                            color = markedBombColor
+                        # elif playerSqaure.markedBomb:
+                        #     color = markedBombColor
 
 
                         
@@ -208,15 +211,17 @@ class MinesweeperGameAI:
 
         return (grid, path, start, end)
     
-    def play_step(self,action, square):
+    def play_step(self, square):
+
+        selectedSquare = self.playerGrid.grid[square.row][square.col]
 
         # 1. update grid based on action and square chosen
-        if action == 0:#mark bomb
-            self.playerGrid.markBomb(square.row, square.col)
-        elif action == 1:#reveal square
-            self.playerGrid.revealSquare(square.row, square.col)
-            self.checkGameOver(square.row, square.col)
-            self.playerGrid.updateSquare(square)
+        # if action == 0:#mark bomb
+        #     self.playerGrid.markBomb(square.row, square.col)
+        # elif action == 1:#reveal square
+        self.playerGrid.revealSquare(selectedSquare.row, selectedSquare.col)
+        self.checkGameOver(selectedSquare.row, selectedSquare.col)
+        self.playerGrid.updateSquare(selectedSquare)
 
         reward = 0 
 
@@ -228,7 +233,7 @@ class MinesweeperGameAI:
                 reward = -10
             return self.gameOver, reward
         
-        if square.path:
+        if selectedSquare.path:
             reward = 10
 
         self.update()
