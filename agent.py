@@ -1,158 +1,146 @@
-import torch
-import random
-import numpy as np
-from collections import deque
 from game import MinesweeperGameAI, ROWS, COLS
-
-from model import Linear_QNet, QTrainer
-
-
-MAX_MEMORY = 100_000
-BATCH_SIZE = 1000
-LR = 0.001
+import random
 
 
-class square:
-    def __init__(self, row, col):
-        self.row = row
-        self.col = col
-
-class Agent:
-
+class AI:
     def __init__(self):
-        self.n_games = 0
-        self.epsilon = 0 # randomness
-        self.gamma = 0.9 # discount rate
-        self.memory = deque(maxlen=MAX_MEMORY) # popleft()
-        self.model = Linear_QNet(3*ROWS*COLS, 256, 2)
-        self.trainer = QTrainer(self.model, lr=LR, gamma=self.gamma)
+        game = MinesweeperGameAI
+        self.playerGrid = game.playerGrid
+        self.numOfActions = 0
+        directions = {"above", "below", "left", "right"}
 
+    def getRandomSquare(self):
+        while True:
+            row = random.randint(0, ROWS - 1)
+            col = random.randint(0, COLS - 1)
+            if not self.playerGrid.grid[row][col].revealed:
+                break
+        return (row, col)
 
-    
-    
-    def get_state(self, game):
-        playerGrid = game.playerGrid
+    def getAction(self):
 
-        state = []
-
-        for row in range(ROWS):
-            for col in range(COLS):
-                square = playerGrid.grid[row][col]
-
-                if square.revealed:
-                    state.append(1)  # Square is revealed
-                else:
-                    state.append(0)  # Square is unrevealed
-
-                # if square.markedBomb:
-                #     state.append(1)  # Square is marked as a bomb
-                # else:
-                #     state.append(0)  # Square is not marked as a bomb
-
-                state.append(square.numOfBombs)  # Number of bombs adjacent to the square
-
-                if square.path and square.revealed:
-                    state.append(1)  # Square is part of the path
-                elif  not square.path and square.revealed:
-                    state.append(0)  # Square is not part of the path
-                else:
-                    state.append(-1)  # Square is unrevealed
-
-        return state
-
-
-    def get_action(self, state, game):
-        self.epsilon = 80 - self.n_games
-        final_move = [0,0,0]
-        if random.randint(0, 200) < self.epsilon:
-            # Explore: Choose a random action with probability epsilon
+        if self.numOfActions == 0:
+            #first move
+            square = self.getRandomSquare()
             
-            while True:
-                row = random.randint(0, ROWS - 1)
-                col = random.randint(0, COLS - 1)
-                if not game.playerGrid.grid[row][col].revealed:
-                    break
-            return (row, col)
-        else:
-            # Exploit: Choose the action with the highest Q-value
-            # q_values = self.model.predict(state)  # Use your Q-network to predict Q-values
-            # return action_with_highest_q_value(q_values)
-            state0 = torch.tensor(state, dtype=torch.float)
-            q_values = self.model(state0)
-            chosen_action = torch.argmax(q_values).item()
-            
-            # Convert the chosen action to row and column
-            row = chosen_action // COLS
-            col = chosen_action % COLS
-            return (row, col)
-    
-    def remember(self, state, row, col, reward, next_state, done):
-        self.memory.append((state, row,col, reward, next_state, done)) # popleft if MAX_MEMORY is reached
-
-    def train_long_memory(self):
-        if len(self.memory) > BATCH_SIZE:
-            mini_sample = random.sample(self.memory, BATCH_SIZE) # list of tuples
-        else:
-            mini_sample = self.memory
-
-        states, rows, cols, rewards, next_states, dones = zip(*mini_sample)
-        self.trainer.train_step(states, rows, cols, rewards, next_states, dones)
-        #for state, action, reward, nexrt_state, done in mini_sample:
-        #    self.trainer.train_step(state, action, reward, next_state, done)
-
-    def train_short_memory(self, state, row, col, reward, next_state, done):
-        self.trainer.train_step(state, row, col, reward, next_state, done)
-    
-
-    
-
-    
-
-
-                
+        #check if there are any hidden square that are guarenteed  to be part of path, a bomb or is safe
+        isPartPath, squarePath = self.checkPartPath()
+        isSafe, squareSafe = self.checkSafe()
+        IsBomb, squareBomb = self.checkBomb()
         
-def train():
- 
-    agent = Agent()
-    game = MinesweeperGameAI()
-    while True:
-        try:
-            # get old state
-            state_old = agent.get_state(game)
+        if isPartPath:
+            return squarePath
+        elif isSafe:
+            return squareSafe
+        elif IsBomb:
+            return squareBomb
+        
+        #check around path
 
-            # get move
-            square.row, square.col = agent.get_action(state_old, game)
+        return square
+    
+    def checkPartPath(self):
+        #check if any guarenteed part of path
+        #if true return square that is part of path
+        isPartPath = False
+        for row in range(ROWS - 1):
+            for col in range(COLS - 1):
+                square = self.playerGrid[row][col]
+                if square.path:
 
-    #self.gameOver, self.win, self.numOfFoundPath, reward
+                    # if row = 0 
+                    #   check left right and below
+                    # elif row = Rows - 1
+                    #   check left right and above
+                    # elif col = 0 
+                    # check above below and right
+                    # elif col = COLS - 1
+                    # check above below and left
+                    # else 
+                    #   check all directions
+                    
+                    if row == 0:
+                        # check left right and below
+                        below = self.playerGrid[row][col + 1]
+                        left = self.playerGrid[row - 1][col]
+                        right = self.playerGrid[row + 1][col]
 
-            # perform move and get new state
-            done, reward = game.play_step(square)
-            state_new = agent.get_state(game)
+                        if below.revealed and left.revealed and  not(above.path or below.path or left.path):
+                            return isPartPath, right
+                        elif below.revealed and right.revealed and  not(above.path or below.path or right.path):
+                            return isPartPath, left
+                        elif left.revealed and right.revealed and  not(above.path or left.path or right.path):
+                            return isPartPath, below
+                    elif row == ROWS - 1:
+                        # check left right and above
+                        above = self.playerGrid[row][col - 1]
+                        left = self.playerGrid[row - 1][col]
+                        right = self.playerGrid[row + 1][col]  
 
-            # train short memory
-            agent.train_short_memory(state_old, square.row, square.col, reward, state_new, done)
-
-
-            # remember
-            agent.remember(state_old, square.row, square.col, reward, state_new, done)
-
-            if done:
-                game.reset()
-                agent.n_games += 1
-                agent.train_long_memory()
-        except Exception as e:
-            print(f"Caught an exception: {e}")
-            game.reset()  # Reset the game when path generation fails
-
-
+                        if above.revealed and left.revealed and  not(above.path or below.path or left.path):
+                            return isPartPath, right
+                        elif above.revealed and right.revealed and  not(above.path or below.path or right.path):
+                            return isPartPath, left
+                        elif left.revealed and right.revealed and  not(below.path or left.path or right.path):
+                            return isPartPath, above
 
 
+                    elif col == 0 :
+                        # check above below and right
+                        above = self.playerGrid[row][col - 1]
+                        below = self.playerGrid[row][col + 1]
+                        right = self.playerGrid[row + 1][col]
+
+
+                        if above.revealed and below.revealed and not(above.path or below.path or left.path):
+                            return isPartPath, right
+                        elif above.revealed and right.revealed and not(above.path or left.path or right.path):
+                            return isPartPath, below
+                        elif below.revealed and right.revealed and not(below.path or left.path or right.path):
+                            return isPartPath, above
+                        
+                    elif col == COLS - 1:
+                        # check above below and left
+                        above = self.playerGrid[row][col - 1]
+                        below = self.playerGrid[row][col + 1]
+                        left = self.playerGrid[row - 1][col]
+
+                        if above.revealed and below.revealed and not(above.path or below.path or right.path):
+                            return isPartPath, left
+                        elif above.revealed and left.revealed and not(above.path or left.path or right.path):
+                            return isPartPath, below
+                        elif below.revealed and left.revealed and not(below.path or left.path or right.path):
+                            return isPartPath, above
+                            
+                    else:
+                        # check all directions
+                        above = self.playerGrid[row][col - 1]
+                        below = self.playerGrid[row][col + 1]
+                        left = self.playerGrid[row - 1][col]
+                        right = self.playerGrid[row + 1][col]
+                        if above.revealed and below.revealed and left.revealed and  not(above.path or below.path or left.path):
+                            return isPartPath, right
+                        elif above.revealed and below.revealed and right.revealed and  not(above.path or below.path or right.path):
+                            return isPartPath, left
+                        elif above.revealed and left.revealed and right.revealed and  not(above.path or left.path or right.path):
+                            return isPartPath, below
+                        elif below.revealed and left.revealed and right.revealed and  not(below.path or left.path or right.path):
+                            return isPartPath, above
 
 
 
-
-if __name__ == '__main__':
-    train()
+    
 
 
-#Q[state][action] = Q[state][action] + alpha * (reward + gamma * max(Q[new_state]) - Q[state][action])
+
+    def checkBomb(self):
+        #check if any guarenteed bombs
+        #if true return square that is bomb
+
+        pass
+
+    def checkSafe(self):
+        #check if any guarenteed safe squares
+        #if true return square that is safe
+        pass
+
