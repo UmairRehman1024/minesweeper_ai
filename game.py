@@ -4,15 +4,14 @@ from path import getPath
 from numOfBombs import generateNumOfBombs
 
 #constants
-ROWS = 10
-COLS = 10
+ROWS = 8
+COLS = 8
 CELL_SIZE = 40
 PADDING = 2
 MAX_BOMBS = (ROWS*COLS)*0.2
 WIDTH = 640
 HEIGHT = 480
 
-MAX_RETRIES = 3
 
 
 # colors
@@ -231,7 +230,7 @@ class MinesweeperGameAI:
                 reward = 50
             else:
                 reward = -10
-            return self.gameOver, reward
+            return self.gameOver, reward, self.numOfFoundPath
         
         if selectedSquare.path:
             reward = 10
@@ -240,7 +239,7 @@ class MinesweeperGameAI:
 
         self.clock.tick(60)
         # 6. return game over and score
-        return self.gameOver, reward
+        return self.gameOver, reward, self.numOfFoundPath
 
     def checkGameOver(self, row, col):
         square = self.grid[row][col]

@@ -24,6 +24,20 @@ class Linear_QNet(nn.Module):
 
         file_name = os.path.join(model_folder_path, file_name)
         torch.save(self.state_dict(), file_name)
+    
+    def load_model(model, file_name='model.pth'):
+        # Load the model's state dictionary from the file
+        model_folder_path = './model'
+        file_path = os.path.join(model_folder_path, file_name)
+        
+        if os.path.exists(file_path):
+            print(f"Loading model from {file_path}")
+            model.load_state_dict(torch.load(file_path))
+            model.eval()  # Set the model to evaluation mode
+            return model
+        else:
+            print(f"Model file '{file_path}' not found. Using a fresh model.")
+            return model
 
 
 class QTrainer:

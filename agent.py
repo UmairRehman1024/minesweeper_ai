@@ -3,6 +3,7 @@ import random
 import numpy as np
 from collections import deque
 from game import MinesweeperGameAI, ROWS, COLS
+from helper import plot
 
 from model import Linear_QNet, QTrainer
 
@@ -24,7 +25,8 @@ class Agent:
         self.epsilon = 0 # randomness
         self.gamma = 0.9 # discount rate
         self.memory = deque(maxlen=MAX_MEMORY) # popleft()
-        self.model = Linear_QNet(3*ROWS*COLS, 256, 2)
+        model = Linear_QNet(3*ROWS*COLS, 512, 2)
+        self.model = Linear_QNet.load_model(model)
         self.trainer = QTrainer(self.model, lr=LR, gamma=self.gamma)
 
 
@@ -62,8 +64,7 @@ class Agent:
 
 
     def get_action(self, state, game):
-        self.epsilon = 80 - self.n_games
-        final_move = [0,0,0]
+        self.epsilon = 500 - self.n_games
         if random.randint(0, 200) < self.epsilon:
             # Explore: Choose a random action with probability epsilon
             
@@ -112,7 +113,11 @@ class Agent:
                 
         
 def train():
- 
+    plot_scores = []
+    plot_mean_scores = []
+    total_score = 0
+    record = 0
+    # numOfFoundPath = 0
     agent = Agent()
     game = MinesweeperGameAI()
     while True:
@@ -123,10 +128,10 @@ def train():
             # get move
             square.row, square.col = agent.get_action(state_old, game)
 
-    #self.gameOver, self.win, self.numOfFoundPath, reward
+            #self.gameOver, self.win, self.numOfFoundPath, reward
 
             # perform move and get new state
-            done, reward = game.play_step(square)
+            done, reward, numOfFoundPath = game.play_step(square)
             state_new = agent.get_state(game)
 
             # train short memory
@@ -140,6 +145,19 @@ def train():
                 game.reset()
                 agent.n_games += 1
                 agent.train_long_memory()
+
+                if numOfFoundPath > record:
+                    record = numOfFoundPath
+                    agent.model.save()
+
+                print('Game', agent.n_games, 'numOfFoundPath', numOfFoundPath, 'Record:', record)
+
+                plot_scores.append(numOfFoundPath)
+                total_score += numOfFoundPath
+                mean_score = total_score / agent.n_games
+                plot_mean_scores.append(mean_score)
+                plot(plot_scores, plot_mean_scores)
+
         except Exception as e:
             print(f"Caught an exception: {e}")
             game.reset()  # Reset the game when path generation fails
