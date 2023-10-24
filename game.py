@@ -74,7 +74,7 @@ class PlayerGridSquare:
         self.revealed = False
         self.row = row
         self.col = col
-        #self.markedBomb =False
+        self.markedBomb =False
         self.path = False
         self.numOfBombs = -1
 
@@ -91,8 +91,8 @@ class PlayerGrid:
         self.grid[gridSquare.row][gridSquare.col].path = gridSquare.path
         self.grid[gridSquare.row][gridSquare.col].numOfBombs = gridSquare.numOfBombs
 
-    # def markBomb(self, row, col):
-    #     self.grid[row][col].markedBomb = True
+    def markBomb(self, row, col):
+        self.grid[row][col].markedBomb = True
 
     
     def revealSquare(self, row, col):
@@ -176,8 +176,8 @@ class MinesweeperGameAI:
                                 text_rect = text.get_rect()
                                 text_rect.center = square.rect.center
                         
-                        # elif playerSqaure.markedBomb:
-                        #     color = markedBombColor
+                        elif playerSqaure.markedBomb:
+                            color = markedBombColor
 
 
                         
@@ -211,36 +211,40 @@ class MinesweeperGameAI:
 
         return (grid, path, start, end)
     
-    def play_step(self, square):
+    def play_step(self, action,  row, col):
 
-        selectedSquare = self.playerGrid.grid[square.row][square.col]
+        selectedSquare = self.playerGrid.grid[row][col]
 
+        if action == 0:
+            self.playerGrid.markBomb(selectedSquare.row, selectedSquare.col)
+        elif action == 1:
+            self.playerGrid.revealSquare(selectedSquare.row, selectedSquare.col)
+            self.checkGameOver(selectedSquare.row, selectedSquare.col)
         # 1. update grid based on action and square chosen
         # if action == 0:#mark bomb
         #     self.playerGrid.markBomb(square.row, square.col)
         # elif action == 1:#reveal square
-        self.playerGrid.revealSquare(selectedSquare.row, selectedSquare.col)
-        self.checkGameOver(selectedSquare.row, selectedSquare.col)
+
         self.playerGrid.updateSquare(selectedSquare)
 
-        reward = 0 
+        # reward = 0 
 
         
-        if self.gameOver:
-            if self.win:
-                reward = 50
-            else:
-                reward = -10
-            return self.gameOver, reward
+        # if self.gameOver:
+        #     if self.win:
+        #         reward = 50
+        #     else:
+        #         reward = -10
+        #     return self.gameOver, reward
         
-        if selectedSquare.path:
-            reward = 10
+        # if selectedSquare.path:
+        #     reward = 10
 
         self.update()
 
         self.clock.tick(60)
         # 6. return game over and score
-        return self.gameOver, reward
+        return self.gameOver, self.win
 
     def checkGameOver(self, row, col):
         square = self.grid[row][col]
@@ -254,7 +258,6 @@ class MinesweeperGameAI:
             if self.numOfFoundPath == len(self.path):
                 self.gameOver = True
                 self.win = True
-
 
 
 
