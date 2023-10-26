@@ -80,10 +80,13 @@ def getPath(grid, ROWS, COLS):
             retries += 1  # Increment the number of retries
 
         if retries == MAX_RETRIES:
-            print("Failed to generate a valid path after multiple retries.")
+            Exception("Failed to generate a valid path after multiple retries.")
             break  # Exit the loop if retries are exhausted
         else:
             time.sleep(1)  # Add a delay of 1 second before retrying
+
+    if retries == MAX_RETRIES:
+        return (None, None, None)
 
     for i in path:
         i.path = True

@@ -36,6 +36,8 @@ font = pygame.font.Font(None, 36)
 class GridSquare:
 
     def __init__(self, bomb, path, numOfBombs, x,y, cellSize, row, col):
+        self.revealed = False
+        self.markedBomb =False
         self.bomb =bomb
         self.path = path
         self.numOfBombs = numOfBombs
@@ -90,13 +92,37 @@ class PlayerGrid:
     def updateSquare(self, gridSquare):
         self.grid[gridSquare.row][gridSquare.col].path = gridSquare.path
         self.grid[gridSquare.row][gridSquare.col].numOfBombs = gridSquare.numOfBombs
+        self.grid[gridSquare.row][gridSquare.col].revealed = gridSquare.revealed
+        self.grid[gridSquare.row][gridSquare.col].markedBomb = gridSquare.markedBomb
+
 
     def markBomb(self, row, col):
         self.grid[row][col].markedBomb = True
 
     
-    def revealSquare(self, row, col):
-        self.grid[row][col].revealed= True
+    def revealSquare(self, row, col, grid):
+        if not 0 <= row < ROWS   or not 0 <= col < COLS :
+            return
+
+        playerSquare = self.grid[row][col]
+
+        gridSquare = grid[row][col]
+
+        if playerSquare.revealed or gridSquare.numOfBombs > 0:
+            return
+
+        playerSquare.revealed = True
+
+        # Check and reveal adjacent unrevealed squares with no bombs
+        for dr in [-1, 0, 1]:
+            for dc in [-1, 0, 1]:
+                if dr == 0 and dc == 0:
+                    continue
+
+                r, c = row + dr, col + dc
+
+                if 0 <= r < ROWS and 0 <= c < COLS:
+                    self.revealSquare(r, c)
 
 
         
@@ -196,6 +222,11 @@ class MinesweeperGameAI:
         textRect = pygame.Rect(width, height, text.get_width(), text.get_height())
         self.screen.blit(text, textRect)
 
+    def displayTextCenter(self, text):
+        text = font.render(text, True, (255, 255, 255))
+        textRect = pygame.Rect(WIDTH/2-text.get_width()/2, 25, text.get_width(), text.get_height())
+        self.screen.blit(text, textRect)
+
         
     def instanciateGrid(self):
         #instanciate grid
@@ -209,16 +240,19 @@ class MinesweeperGameAI:
         #get the path
         path, start, end = getPath(grid, ROWS, COLS)
 
+
         return (grid, path, start, end)
     
     def play_step(self, action,  row, col):
 
         selectedSquare = self.playerGrid.grid[row][col]
+        print("selectedSquare: ", selectedSquare.row, selectedSquare.col)
+        print("action: ", action)
 
         if action == 0:
             self.playerGrid.markBomb(selectedSquare.row, selectedSquare.col)
         elif action == 1:
-            self.playerGrid.revealSquare(selectedSquare.row, selectedSquare.col)
+            self.playerGrid.revealSquare(selectedSquare.row, selectedSquare.col, self.grid)
             self.checkGameOver(selectedSquare.row, selectedSquare.col)
         # 1. update grid based on action and square chosen
         # if action == 0:#mark bomb

@@ -1,4 +1,4 @@
-from game import MinesweeperGameAI, ROWS, COLS
+from game import MinesweeperGameAI, ROWS, COLS, WIDTH, HEIGHT
 import random
 import pygame
 import sys
@@ -18,6 +18,36 @@ class AI:
                 break
         return row, col
 
+    # def getAction(self):
+    #     if self.numOfActions == 0:
+    #         row, col = self.getRandomSquare()
+    #         return ('reveal', row, col)  # First move
+
+    #     isPartPath, squarePathRow, squarePathCol = self.findPartPath()
+    #     isGuaranteedBomb, guaranteedBombRow, guaranteedBombCol = self.findGuaranteedBombs()
+    #     isGuaranteedSafe, guaranteedSafeRow, guaranteedSafeCol = self.findGuaranteedSafe()
+
+    #     print("hellow")
+
+
+    #     if isPartPath:
+    #         print("path")
+    #         print(squarePathRow, squarePathCol)
+    #         return ('reveal', squarePathRow, squarePathCol)
+    #     elif isGuaranteedBomb:
+    #         print("bomb")
+    #         # Choose to mark a bomb if there is a guaranteed bomb
+    #         return ('mark_bomb', guaranteedBombRow, guaranteedBombCol)
+    #     elif isGuaranteedSafe:
+    #         print("safe")
+    #         # Choose to reveal a safe square if there is a guaranteed safe square
+    #         return ('reveal', guaranteedSafeRow, guaranteedSafeCol)
+
+    #     # If no guaranteed moves, select a random unrevealed square.
+    #     row, col = self.getRandomSquare()
+    #     print("random")
+    #     return ('reveal', row, col)
+    
     def getAction(self):
         if self.numOfActions == 0:
             row, col = self.getRandomSquare()
@@ -27,22 +57,37 @@ class AI:
         isGuaranteedBomb, guaranteedBombRow, guaranteedBombCol = self.findGuaranteedBombs()
         isGuaranteedSafe, guaranteedSafeRow, guaranteedSafeCol = self.findGuaranteedSafe()
 
-        print("hellow")
-
 
         if isPartPath:
-            return ('reveal', squarePathRow, squarePathCol)
+            print("path")
+            if not self.playerGrid.grid[squarePathRow][squarePathCol].revealed:
+                print(squarePathRow, squarePathCol)
+                return ('reveal', squarePathRow, squarePathCol)
         elif isGuaranteedBomb:
-            # Choose to mark a bomb if there is a guaranteed bomb
-            return ('mark_bomb', guaranteedBombRow, guaranteedBombCol)
+            print("bomb")
+            if not self.playerGrid.grid[guaranteedBombRow][guaranteedBombCol].revealed:
+                # Choose to mark a bomb if there is a guaranteed bomb
+                return ('mark_bomb', guaranteedBombRow, guaranteedBombCol)
         elif isGuaranteedSafe:
-            # Choose to reveal a safe square if there is a guaranteed safe square
-            return ('reveal', guaranteedSafeRow, guaranteedSafeCol)
+            print("safe")
+            if not self.playerGrid.grid[guaranteedSafeRow][guaranteedSafeCol].revealed:
+                # Choose to reveal a safe square if there is a guaranteed safe square
+                return ('reveal', guaranteedSafeRow, guaranteedSafeCol)
 
         # If no guaranteed moves, select a random unrevealed square.
         row, col = self.getRandomSquare()
-        print("random")
-        return ('reveal', row, col)
+        if not self.playerGrid.grid[row][col].revealed:
+            print("random")
+            return ('reveal', row, col)
+        else:
+            # If the random square is already revealed, find and return an unrevealed square.
+            for i in range(ROWS):
+                for j in range(COLS):
+                    if not self.playerGrid.grid[i][j].revealed:
+                        return ('reveal', i, j)
+        
+        # If all squares are revealed, return a dummy action.
+        return ('noop', -1, -1)
     
     # def checkPartPath(self):
     #     #check if any guarenteed part of path
@@ -232,27 +277,33 @@ def main():
     game = MinesweeperGameAI()
     ai = AI()
 
-    while True:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
 
-        action, row, col = ai.getAction()
-        if action == 'mark_bomb':
-            action = 0
-        elif action == 'reveal':
-            action = 1
-        gameOver, win = game.play_step(action, row, col)
-        ai.numOfActions += 1
-        print(ai.numOfActions)
-        if win:
-            break
-        elif gameOver:
+    while True:
+        try:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+
+            action, row, col = ai.getAction()
+            if action == 'mark_bomb':
+                action = 0
+            elif action == 'reveal':
+                action = 1
+            gameOver, win = game.play_step(action, row, col)
+            ai.numOfActions += 1
+            print(ai.numOfActions)
+            if win:
+                break
+            elif gameOver:
+                game.reset()
+        except Exception as e:
             game.reset()
+            
+    
 
     print("Game over")
-    game.displayText("You Win", )
+    game.displayTextCenter("You Win")
 
 if __name__ == '__main__':
     main()
