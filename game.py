@@ -117,14 +117,15 @@ class MinesweeperGameAI:
 
     def reset(self):
         self.screen.fill(backgroundColor)
-        retries = 0
         self.grid, self.path, self.start, self.end = self.instanciateGrid()
         self.playerGrid = PlayerGrid()
         self.playerGrid.updateSquare(self.start)
         self.playerGrid.updateSquare(self.end)
+
         self.gameOver = False
         self.win = False
         self.numOfFoundPath = 0
+
 
 
     def update(self):
@@ -210,9 +211,11 @@ class MinesweeperGameAI:
 
         return (grid, path, start, end)
     
-    def play_step(self, square):
+    def play_step(self, move):
+        row = move//COLS
+        col = move%COLS
 
-        selectedSquare = self.playerGrid.grid[square.row][square.col]
+        selectedSquare = self.playerGrid.grid[row][col]
 
         # 1. update grid based on action and square chosen
         # if action == 0:#mark bomb
@@ -227,13 +230,17 @@ class MinesweeperGameAI:
         
         if self.gameOver:
             if self.win:
-                reward = 50
+                reward = 10
             else:
                 reward = -10
             return self.gameOver, reward, self.numOfFoundPath
         
         if selectedSquare.path:
-            reward = 10
+            reward = 5
+
+        if self.checkSquareHasRevealedSquaresAround(selectedSquare) == False:
+            print("PENALTY")
+            reward = -1
 
         self.update()
 
@@ -251,8 +258,24 @@ class MinesweeperGameAI:
             if square.path:
                 self.numOfFoundPath += 1
             if self.numOfFoundPath == len(self.path):
+                print("WIN")
                 self.gameOver = True
                 self.win = True
+
+    def checkSquareHasRevealedSquaresAround(self, square):
+        # Define the offsets for checking neighboring squares, including diagonals
+        neighbors_offsets = [
+            (1, 0), (-1, 0), (0, 1), (0, -1),
+            (1, 1), (-1, -1), (1, -1), (-1, 1)
+        ]
+
+
+        for dr, dc in neighbors_offsets:
+            r, c = square.row + dr, square.col + dc
+            if 0 <= r < len(self.playerGrid.grid) and 0 <= c < len(self.playerGrid.grid[0]) and self.playerGrid.grid[r][c].revealed:
+                return True
+
+        return False
 
 
 
