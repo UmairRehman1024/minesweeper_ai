@@ -6,9 +6,11 @@ from numOfBombs import generateNumOfBombs
 #constants
 ROWS = 10
 COLS = 10
+BOMBDENSITY = 0.15
+
 CELL_SIZE = 40
 PADDING = 2
-MAX_BOMBS = (ROWS*COLS)*0.2
+MAX_BOMBS = (ROWS*COLS)*BOMBDENSITY
 WIDTH = 640
 HEIGHT = 480
 
