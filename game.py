@@ -96,6 +96,7 @@ startColor = (0,255,0)
 endColor = (255, 154, 3)
 pathColor = (0,0,255)
 bombColor = (255,0,0)
+foundBombColor = (100,0,0)
 
 grid, path, start, end = instanciateGrid();
 
@@ -105,15 +106,17 @@ gameOverRect = pygame.Rect(WIDTH*1/4-gameOverText.get_width()/2, 25, gameOverTex
 restartText = font.render("RESTART", True, (255, 255, 255))
 restartRect = pygame.Rect(WIDTH*3/4-restartText.get_width()/2, 25, restartText.get_width(), restartText.get_height())
 
-winText = font.render("You win", True, (255, 255, 255))
+winText = font.render("You win", True, (100, 255, 100))
 winRect = pygame.Rect(WIDTH/2-winText.get_width()/2, 25, winText.get_width(), winText.get_height())
 
-loseText = font.render("You lose", True, (255, 255, 255))
+loseText = font.render("You lose", True, (255, 100, 100))
 loseRect = pygame.Rect(WIDTH/2-loseText.get_width()/2, 25, loseText.get_width(), loseText.get_height())
 
 numOfFoundPath = 0
 
 win = False
+
+foundBombs = []
     
 
 #main game loop
@@ -161,6 +164,43 @@ while running:
                 print("restart")
                 grid, path, start, end = instanciateGrid();
                 gameOver = False
+
+
+        elif event.type == pygame.MOUSEBUTTONUP and event.button == 3:
+            
+            x, y = pygame.mouse.get_pos()
+            for row in range(ROWS):
+                for col in range(COLS):
+                    square = grid[row][col]
+                    if square.rect.collidepoint(x,y):
+                        if foundBombs.count(square) == 0:
+                            foundBombs.append(square)
+
+            print("rightclick")
+            print(foundBombs)
+
+
+        elif event.type == pygame.MOUSEBUTTONUP and event.button == 2:
+            
+            x, y = pygame.mouse.get_pos()
+            for row in range(ROWS):
+                for col in range(COLS):
+                    square = grid[row][col]
+                    if square.rect.collidepoint(x,y):
+                        for foundBomb in foundBombs:
+                            if foundBomb == square:
+                                foundBombs.remove(square)
+
+            print("middleclick")
+            print(foundBombs)
+                      
+
+
+  
+                            
+
+                                
+
                 
                 
 
@@ -177,6 +217,11 @@ while running:
             for col in range(COLS):
                     square = grid[row][col]
                     color = hiddenColor# white
+
+                    for foundBomb in foundBombs:
+                        if foundBomb == square:
+                            color = foundBombColor
+
 
                     
                     if square == start:
