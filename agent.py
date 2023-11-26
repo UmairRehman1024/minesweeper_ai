@@ -10,7 +10,21 @@ from model import Linear_QNet, QTrainer
 
 MAX_MEMORY = 100_000
 BATCH_SIZE = 1000
-LR = 0.002
+LR = 0.001
+
+#3 channels 
+#1 for revealed or not
+#2 for number of bombs
+#3 for path or not
+
+# Create an instance of the DQN model
+input_dims = (3, ROWS, COLS)  # Adjust the input dimensions accordingly
+n_actions = ROWS*COLS  # Adjust the number of actions accordingly
+conv_units = 32  # Adjust the number of convolutional units accordingly
+dense_units = 256  # Adjust the number of dense units accordingly
+model = Linear_QNet(input_dims, n_actions, conv_units, dense_units)
+
+
 
 
 class square:
@@ -25,41 +39,71 @@ class Agent:
         self.epsilon = 0 # randomness
         self.gamma = 0.9 # discount rate
         self.memory = deque(maxlen=MAX_MEMORY) # popleft()
-        model = Linear_QNet(3*ROWS*COLS, 512, ROWS*COLS)
+        model = Linear_QNet(input_dims, n_actions, conv_units, dense_units)
         self.model = Linear_QNet.load_model(model)
         self.trainer = QTrainer(self.model, lr=LR, gamma=self.gamma)
 
-        
-    
 
-    
+        
     def get_state(self, game):
         playerGrid = game.playerGrid
 
-        state = []
+        revealed = torch.zeros(ROWS, COLS)
+        bombs = torch.zeros(ROWS, COLS)
+        path = torch.zeros(ROWS, COLS)
 
         for row in range(ROWS):
             for col in range(COLS):
+                
                 square = playerGrid.grid[row][col]
 
                 if square.revealed:
-                    state.append(1)  # Square is revealed
+
+                    revealed[row][col] = 1
+
+                bombs[row][col] = square.numOfBombs
+
+
+                if square.path and square.revealed:
+                    path[row][col] = 1  # Square is part of the path
+
+        # stack = torch.stack((revealed, bombs, path))
+        # print(stack.shape)
+        return torch.stack((revealed, bombs, path))
+
+    
+    def get_stateOLD(self, game):
+        playerGrid = game.playerGrid
+
+        state = [[]]
+
+        for row in range(ROWS):
+            row = []
+            for col in range(COLS):
+                col = []
+                square = playerGrid.grid[row][col]
+
+                if square.revealed:
+                    col.append(1)  # Square is revealed
                 else:
-                    state.append(0)  # Square is unrevealed
+                    col.append(0)  # Square is unrevealed
 
                 # if square.markedBomb:
                 #     state.append(1)  # Square is marked as a bomb
                 # else:
                 #     state.append(0)  # Square is not marked as a bomb
 
-                state.append(square.numOfBombs)  # Number of bombs adjacent to the square
+                col.append(square.numOfBombs)  # Number of bombs adjacent to the square
 
                 if square.path and square.revealed:
-                    state.append(1)  # Square is part of the path
+                    col.append(1)  # Square is part of the path
                 elif  not square.path and square.revealed:
-                    state.append(0)  # Square is not part of the path
+                    col.append(0)  # Square is not part of the path
                 else:
-                    state.append(-1)  # Square is unrevealed
+                    col.append(-1)  # Square is unrevealed
+            
+                row.append(col)
+            state.append(row)
 
         return state
 

@@ -4,8 +4,8 @@ from path import getPath
 from numOfBombs import generateNumOfBombs
 
 #constants
-ROWS = 8
-COLS = 8
+ROWS = 5
+COLS = 5
 CELL_SIZE = 40
 PADDING = 2
 MAX_BOMBS = (ROWS*COLS)*0.2
@@ -239,8 +239,9 @@ class MinesweeperGameAI:
             reward = 5
 
         if self.checkSquareHasRevealedSquaresAround(selectedSquare) == False:
-            print("PENALTY")
             reward = -1
+        else:
+            reward = 1
 
         self.update()
 
